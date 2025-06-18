@@ -11,7 +11,6 @@ MINT_BOLD = "\033[1;38;2;170;240;209m"
 YELLOW = "\033[38;2;255;255;0m"
 YELLOW_BOLD = "\033[1;38;2;255;255;0m"
 
-#ffffff
 WHITE = "\033[38;2;255;255;255m"
 
 def printm(*args, **kwargs):
@@ -43,6 +42,24 @@ class MintUnknownError(Exception):
 
     def __str__(self):
         return f"MintUnknownError: {self.message}"
+
+class MintDownloadError(Exception):
+    def __init__(self, file_hash, message):
+        self.file_hash = file_hash
+        self.message = message
+        super().__init__(self.__str__())
+
+    def __str__(self):
+        return f"MintDownloadError for file with SHA256 sum '{self.file_hash}': {self.message}"
+
+class MintPublishError(Exception):
+    def __init__(self, file_path, message):
+        self.file_path = file_path
+        self.message = message
+        super().__init__(self.__str__())
+
+    def __str__(self):
+        return f"MintPublishError for file at path'{self.file_path}': {self.message}"
 
 def loadConfig(path="~/.mintfsh/config.json"):
     path = os.path.expanduser(path)
