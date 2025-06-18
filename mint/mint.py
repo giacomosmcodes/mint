@@ -1,8 +1,7 @@
-import json 
+import json
 import os
 
 class MintConfigError(Exception):
-    """A Mint-specific class for errors related to Mint's config."""
     def __init__(self, message, path=None):
         self.message = message
         self.path = path
@@ -14,7 +13,6 @@ class MintConfigError(Exception):
         return f"MintConfigError: {self.message}"
     
 class MintUnknownError(Exception):
-    """A Mint-specific class for unknown errors"""
     def __init__(self, message):
         self.message = message
         super().__init__(self.__str__())
@@ -23,6 +21,7 @@ class MintUnknownError(Exception):
         return f"MintUnknownError: {self.message}"
 
 def loadConfig(path="~/.mintfsh/config.json"):
+    path = os.path.expanduser(path)
     if not os.path.exists(path):
         doCreateConfig = input(f"Configuration file at path {path} does not exist. Have Mint create the default config there? [Y/n]: ").strip().lower()
         if doCreateConfig in ["y", "yes", ""]:
@@ -41,6 +40,7 @@ def loadConfig(path="~/.mintfsh/config.json"):
     return config
 
 def createConfig(path="~/.mintfsh/config.json"):
+    path = os.path.expanduser(path)
     config = {
         "hosts": [
             {
@@ -50,11 +50,12 @@ def createConfig(path="~/.mintfsh/config.json"):
                 "identity": "default",
             }
         ],
-        "tor": False, # can be overridden by specifying the --tor or --notor flags
-        "identity": "default", # can be overridden by specifying the --id flag, or by configuring host-specific identities
+        "tor": False,
+        "identity": "default",
     }
     try:
-        with open(path, "w") as f:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "x") as f:
             json.dump(config, f, indent=4)
     except Exception as e:
         raise MintUnknownError(f"An unknown error occurred when creating Mint config: {e}")
