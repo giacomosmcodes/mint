@@ -1,5 +1,10 @@
 import json
 import os
+import hashlib
+import urllib.request
+import urllib.error
+from pathlib import Path
+import argparse
 
 RESET = "\033[0m"
 
@@ -12,6 +17,19 @@ YELLOW = "\033[38;2;255;255;0m"
 YELLOW_BOLD = "\033[1;38;2;255;255;0m"
 
 WHITE = "\033[38;2;255;255;255m"
+
+def sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+def fSha256(f):
+    h = hashlib.sha256()
+    for chunk in iter(lambda: f.read(8192), b''):
+        h.update(chunk)
+    return h.hexdigest()
 
 def printm(*args, **kwargs):
     print(MINT + " ".join(map(str, args)) + RESET, **kwargs)
@@ -59,7 +77,7 @@ class MintPublishError(Exception):
         super().__init__(self.__str__())
 
     def __str__(self):
-        return f"MintPublishError for file at path'{self.file_path}': {self.message}"
+        return f"MintPublishError for file at path '{self.file_path}': {self.message}"
 
 def loadConfig(path="~/.mintfsh/config.json"):
     path = os.path.expanduser(path)
@@ -102,9 +120,54 @@ def createConfig(path="~/.mintfsh/config.json"):
         raise MintUnknownError(f"An unknown error occurred when creating Mint config: {e}")
     return config
 
+def publish(file_path, config):
+    printm(f"Uploading file: {file_path}")
+    # placeholder return
+    return None
+
+def download(file_hash, config):
+    printm(f"Downloading file with SHA256: {file_hash}")
+    # placeholder return
+    return None
+
+def print_config(config):
+    # for now, just echos the config
+    # need to make it actually parse the json later
+    # qwertyuiopasdfghjklzxcvbnm so much to do
+    printmb("Mint configuration:")
+    print(json.dumps(config, indent=4))
+
 def main():
+    parser = argparse.ArgumentParser(
+        prog="mint",
+        description="a simple, fast and secure file sharing tool"
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # mint upload <file>
+    upload_parser = subparsers.add_parser("upload", help="Upload a file")
+    upload_parser.add_argument("file", help="Path to file to upload")
+
+    # mint download <sha256>
+    download_parser = subparsers.add_parser("download", help="Download a file by its SHA256")
+    download_parser.add_argument("hash", help="SHA256 sum of the file")
+
+    # mint info
+    subparsers.add_parser("info", help="Displays info about Mint configuration")
+
+    args = parser.parse_args()
     config = loadConfig()
-    printm("Mint configuration loaded successfully:\n", json.dumps(config, indent=4))
+
+    try:
+        if args.command == "upload":
+            publish(args.file, config)
+        elif args.command == "download":
+            download(args.hash, config)
+        elif args.command == "info":
+            print_config(config)
+    except (MintDownloadError, MintPublishError, MintUnknownError, MintConfigError) as e:
+        printr(str(e))
+        exit(1)
 
 if __name__ == "__main__":
     main()
