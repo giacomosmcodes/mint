@@ -1,6 +1,30 @@
 import json
 import os
 
+RESET = "\033[0m"
+
+#aaf0d1
+MINT = "\033[38;2;170;240;209m"
+MINT_BOLD = "\033[1;38;2;170;240;209m"
+
+#ffff00
+YELLOW = "\033[38;2;255;255;0m"
+YELLOW_BOLD = "\033[1;38;2;255;255;0m"
+
+#ffffff
+WHITE = "\033[38;2;255;255;255m"
+
+def printm(*args, **kwargs):
+    print(MINT + " ".join(map(str, args)) + RESET, **kwargs)
+def printmb(*args, **kwargs):
+    print(MINT_BOLD + " ".join(map(str, args)) + RESET, **kwargs)
+def printy(*args, **kwargs):
+    print(YELLOW + " ".join(map(str, args)) + RESET, **kwargs)
+def printyb(*args, **kwargs):
+    print(YELLOW_BOLD + " ".join(map(str, args)) + RESET, **kwargs)
+def printr(*args, **kwargs):
+    print(RESET + " ".join(map(str, args)) + RESET, **kwargs)
+
 class MintConfigError(Exception):
     def __init__(self, message, path=None):
         self.message = message
@@ -63,7 +87,7 @@ def createConfig(path="~/.mintfsh/config.json"):
 
 def main():
     config = loadConfig()
-    print("Mint configuration loaded successfully:\n", json.dumps(config, indent=4))
+    printm("Mint configuration loaded successfully:\n", json.dumps(config, indent=4))
 
 if __name__ == "__main__":
     main()
