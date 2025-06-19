@@ -103,10 +103,20 @@ def createConfig(path="~/.mintfsh/config.json"):
     config = {
         "hosts": [
             {
-                "name": "default",
+                "name": "default-test",
                 "host": "https://mint-test.giacomosm.workers.dev/",
                 "priority": 0,
                 "identity": "test-identity",
+                "provides_download": True,
+                "provides_upload": False
+            },
+            {
+                "name": "default",
+                "host": "https://mint.giacomosm.workers.dev/",
+                "priority": 1,
+                "identity": "default",
+                "provides_download": True,
+                "provides_upload": True
             }
         ],
         "tor": False,
@@ -121,12 +131,59 @@ def createConfig(path="~/.mintfsh/config.json"):
     return config
 
 def publish(file_path, config):
-    printm(f"Uploading file: {file_path}")
-    # placeholder return
-    return None
+    file_path = os.path.expanduser(file_path)
+    if not os.path.isfile(file_path):
+        raise MintPublishError(file_path, "File does not exist or is a weird file (like a symlink or something?)")
+
+    with open(file_path, "rb") as f:
+        data = f.read()
+        hashval = hashlib.sha256(data).hexdigest()
+
+    filename = os.path.basename(file_path)
+    last_error = None
+
+    for host in sorted(config["hosts"], key=lambda h: h.get("priority", 0)):
+        if not host.get("provides_upload", False):
+            continue
+
+        url = f"{host['host'].rstrip('/')}/upload"
+        identity = host.get("identity", config.get("identity"))
+
+        boundary = "----mintformboundary"
+        headers = {
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "Mint-Identity": identity or "",
+            "Mint-Filename": filename,
+            "User-Agent": "mint-client",
+        }
+
+        body = (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'
+            f"Content-Type: application/octet-stream\r\n\r\n"
+        ).encode() + data + f"\r\n--{boundary}--\r\n".encode()
+
+        printy(f"Uploading to {url}...")
+
+        req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req) as resp:
+                if resp.status == 200:
+                    printmb("File uploaded successfully :) SHA256:", hashval)
+                    return hashval
+                else:
+                    printr(f"Unexpected response: {resp.status}")
+        except urllib.error.HTTPError as e:
+            printr(f"Host '{host['name']}' returned HTTP {e.code}")
+            last_error = f"HTTP {e.code}"
+        except Exception as e:
+            printr(f"Upload to {host['name']} failed: {e}")
+            last_error = str(e)
+
+    raise MintPublishError(file_path, last_error or "Failed to upload to any configured mirror")
+
 
 def download(file_id, config):
-    # Validate hash or special case
     is_valid_sha256 = (
         len(file_id) == 64 and all(c in "0123456789abcdef" for c in file_id.lower())
     )
@@ -137,6 +194,8 @@ def download(file_id, config):
     last_error = None
 
     for host in sorted(config["hosts"], key=lambda h: h.get("priority", 0)):
+        if not host.get("provides_download", False):
+            continue
         url = f"{host['host'].rstrip('/')}/{file_id}"
         identity = host.get("identity", config.get("identity"))
 
