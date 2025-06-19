@@ -104,9 +104,9 @@ def createConfig(path="~/.mintfsh/config.json"):
         "hosts": [
             {
                 "name": "default",
-                "host": "https://giacomosm.github.io/mint-default",
+                "host": "https://mint-test.giacomosm.workers.dev/",
                 "priority": 0,
-                "identity": "default",
+                "identity": "test-identity",
             }
         ],
         "tor": False,
@@ -125,10 +125,69 @@ def publish(file_path, config):
     # placeholder return
     return None
 
-def download(file_hash, config):
-    printm(f"Downloading file with SHA256: {file_hash}")
-    # placeholder return
-    return None
+def download(file_id, config):
+    # Validate hash or special case
+    is_valid_sha256 = (
+        len(file_id) == 64 and all(c in "0123456789abcdef" for c in file_id.lower())
+    )
+
+    if not is_valid_sha256 and file_id != "test":
+        raise MintDownloadError(file_id, "Invalid file ID. Must be a valid SHA256 or test!")
+
+    last_error = None
+
+    for host in sorted(config["hosts"], key=lambda h: h.get("priority", 0)):
+        url = f"{host['host'].rstrip('/')}/{file_id}"
+        identity = host.get("identity", config.get("identity"))
+
+        headers = {
+                "User-Agent": "mint-client",
+                "Accept": "*/*",
+        }
+        if identity:
+            headers["Mint-Identity"] = identity
+
+        printy(f"Trying {url}...")
+
+        req = urllib.request.Request(url, headers=headers, method="GET")
+        try:
+            with urllib.request.urlopen(req) as resp:
+                data = resp.read()
+                filename = resp.headers.get("Mint-Filename") or f"{file_id}.mintdownload"
+
+                if is_valid_sha256:
+                    actual_hash = hashlib.sha256(data).hexdigest()
+                    if actual_hash != file_id:
+                        printr(f"Hash mismatch from {host['name']} (got {actual_hash})! Expected {file_id}. Skipping this host")
+                        continue
+
+                with open(filename, "wb") as f:
+                    f.write(data)
+
+                printmb("Saved to", filename)
+                return
+
+        except urllib.error.HTTPError as e:
+            if e.code == 403:
+                msg = f"Access denied (403) on host '{host['name']}'. Well behaved Mint hosts only throw this based on the identity they recieve. Some platforms may have signups/payment required to get a valid identity- like an API key."
+                printyb(msg)
+                printm(e)
+                last_error = msg
+            elif e.code == 404:
+                msg = f"File not found (404) on host '{host['name']}'"
+                printr(msg)
+                last_error = msg
+            else:
+                msg = f"Host '{host['name']}' responded with HTTP {e.code}"
+                printr(msg)
+                last_error = msg
+
+        except Exception as e:
+            msg = f"Unknown error on host '{host['name']}': {e}. Make sure the host is reachable and follows Mint best practices"
+            printr(msg)
+            last_error = msg
+
+    raise MintDownloadError(file_id, last_error or "File not found on any configured host")
 
 def print_config(config):
     # for now, just echos the config
