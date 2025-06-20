@@ -2,13 +2,16 @@ from setuptools import setup, find_packages
 
 setup(
     name='mintfsh',
-    version='0.1.3',
+    version='0.1.5',
     packages=find_packages(),
     py_modules=['mint.mint'],
-    install_requires=[],
+    install_requires=[
+        'flask>=2.0.0'
+    ],
     entry_points={
         'console_scripts': [
             'mint = mint.mint:main',
+            'mint-host = mint.mint_host:cli'
         ],
     },
     author='giacomosm',

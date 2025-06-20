@@ -39,3 +39,29 @@ Then, if we want to download that same file from somewhere else (with the same h
 ```
 mint download a6ed0c785d4590bc95c216bcf514384eee6765b1c2b732d0b0a1ad7e14d3204a
 ```
+## Quickstart for hosts
+So, you want to set up a Mint host! Running a Mint host is a great way to promote equal access to code and important info, and also a fun learning experience. Mint provides two options for hosting: Node-based (Express) and Python-based (Flask). 
+### Prerequisites
+* If you're planning on using the Flask host, make sure you have Mint installed:
+```
+pip install mintfsh
+```
+* Space on your machine- Mint will make sure that you don't run out, but have at least 5GB available. 
+* Good uptime- to be a great host, where many people trust you to be on their hosts list, you will want good uptime. Don't use something like a personal laptop if you plan on keeping it as a serious host, unless you can keep it on for around 95% of the time.
+## Flask host (easiest)
+The Flask-based host is easy to set up. Again, make sure you have mint installed, then run:
+```
+mint-host 3000
+```
+The command takes in other options too:
+```
+mint host 1234 --maxfs 750 --autodel 7 --cleaninterval 5
+```
+These are optional, but they let you set the port, max file size, autodelete time, and cleanup interval respectively.\
+## Node host (advanced)
+Flask is great, but for hosting serious services, Express is faster and more scalable. To run this, simply go to the mint repo and download `mint-host/full_server.js`. Then, run it with Node, and change the constants at the top if needed.
+## Using it
+It will run on `localhost:3000` by default, which is in the default Mint hosts list. To share it with the world, you can:
+* Find a hosting provider (easier for Node, Flask usually requires a VM)
+* Set up port forwarding and use your IP/a domain you own
+* Set up a tunnel (for example, cloudflared) to your computer. This is easiest and comes with a domain.
