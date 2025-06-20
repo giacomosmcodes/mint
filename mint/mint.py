@@ -112,9 +112,17 @@ def createConfig(path="~/.mintfsh/config.json"):
             },
             {
                 "name": "default",
-                "host": "https://mint.giacomosm.workers.dev/",
+                "host": "https://vegetarian-gnome-quoted-possibility.trycloudflare.com",
                 "priority": 1,
                 "identity": "default",
+                "provides_download": True,
+                "provides_upload": True
+            },
+            {
+                "name": "local",
+                "host": "https://localhost:3000",
+                "priority": 2,
+                "identity": "default-local",
                 "provides_download": True,
                 "provides_upload": True
             }
