@@ -195,3 +195,5 @@ cython_debug/
 test.txt
 test2.txt
 *.mintdownload
+node_modules/
+.env.local

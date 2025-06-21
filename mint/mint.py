@@ -3,7 +3,7 @@ import os
 import hashlib
 import urllib.request
 import urllib.error
-from pathlib import Path
+# from pathlib import Path
 import argparse
 
 RESET = "\033[0m"
@@ -112,7 +112,7 @@ def createConfig(path="~/.mintfsh/config.json"):
             },
             {
                 "name": "default",
-                "host": "https://vegetarian-gnome-quoted-possibility.trycloudflare.com",
+                "host": "https://mint-host.vercel.app/api/",
                 "priority": 1,
                 "identity": "default",
                 "provides_download": True,
@@ -163,6 +163,7 @@ def publish(file_path, config):
             "Mint-Identity": identity or "",
             "Mint-Filename": filename,
             "User-Agent": "mint-client",
+            "bypass-tunnel-reminder": "true",
         }
 
         body = (
@@ -210,6 +211,7 @@ def download(file_id, config):
         headers = {
                 "User-Agent": "mint-client",
                 "Accept": "*/*",
+                "bypass-tunnel-reminder": "true",
         }
         if identity:
             headers["Mint-Identity"] = identity
@@ -257,11 +259,14 @@ def download(file_id, config):
     raise MintDownloadError(file_id, last_error or "File not found on any configured host")
 
 def print_config(config):
-    # for now, just echos the config
-    # need to make it actually parse the json later
-    # qwertyuiopasdfghjklzxcvbnm so much to do
-    printmb("Mint configuration:")
-    print(json.dumps(config, indent=4))
+    printmb("Mint Configuration\n")
+    printyb("Hosts:\n")
+    for host in config.get("hosts", []):
+        printm(f"  - {host.get('name', 'Unnamed')} ({host.get('host', 'Unknown')})")
+        printy(f"    Identity: {host.get('identity', 'None')}")
+        printy(f"    Provides Download: {host.get('provides_download', False)}")
+        printy(f"    Provides Upload: {host.get('provides_upload', False)}")
+        printmb(f"    Priority: {host.get('priority', 0)}\n")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -270,15 +275,12 @@ def main():
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # mint upload <file>
     upload_parser = subparsers.add_parser("upload", help="Upload a file")
     upload_parser.add_argument("file", help="Path to file to upload")
 
-    # mint download <sha256>
     download_parser = subparsers.add_parser("download", help="Download a file by its SHA256")
     download_parser.add_argument("hash", help="SHA256 sum of the file")
 
-    # mint info
     subparsers.add_parser("info", help="Displays info about Mint configuration")
 
     args = parser.parse_args()

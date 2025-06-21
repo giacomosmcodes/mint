@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mintfsh',
-    version='0.1.5',
+    version='0.1.6',
     packages=find_packages(),
     py_modules=['mint.mint'],
     install_requires=[
