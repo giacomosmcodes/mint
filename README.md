@@ -49,7 +49,7 @@ pip install mintfsh
 ```
 * Space on your machine- Mint will make sure that you don't run out, but have at least 5GB available. If you're using the Serverless host, don't worry about this- all storage is managed by Vercel.
 * Good uptime- to be a great host, where many people trust you to be on their hosts list, you will want good uptime. Don't use something like a personal laptop if you plan on keeping it as a serious host, unless you can keep it on for around 95% of the time. This, again, doesn't apply to serverless hosts- these have essentially 100% uptime because they run on demand. 
-## Flask host (easiest)
+## Flask host (easiest for local testing)
 The Flask-based host is easy to set up. Again, make sure you have Mint installed, then run:
 ```
 mint-host 3000
@@ -61,8 +61,31 @@ mint host 1234 --maxfs 750 --autodel 7 --cleaninterval 5
 These are optional, but they let you set the port, max file size, autodelete time, and cleanup interval respectively.
 
 You will need to either host this on a VPS, dedicated Flask host, or set up DDNS + port forwarding. 
+## Serverless Function (easiest simple host)
+If you want a usable host that you can easily share with other people, then the Serverless Function is preferred. This connects to a Vercel Blob store and is deployed in a serverless environment. Keep in mind that this option provides less control over actual files, disk usage, and identity-based auth. 
+### Prerequisites
+A Vercel account (free plan is fine) is required.
+### Step 1: Clone the repo
+Clone and move into host directory
+```
+git clone https://github.com/giacomosmcodes/mint.git 
+cd mint
+cd mint-host
+```
+### Step 2: Change account ID
+In `/api/[hash].js`, change line 12 to your user id followed by `.public`.
+### Step 3: Deploy
+Install Vercel CLI:
+```
+npm install -g vercel
+```
+Authenticate:
+```
+vercel login
+```
+Then just run the deployment helper tool, which will guide you through deploying the 
 ## Node host (advanced)
-Flask is great, but for hosting serious services, Express is faster and more scalable. To run this, simply go to the mint repo and download `mint-host/full_server.js`. Then, run it with Node, and change the constants at the top if needed. This gives you the most control over your Mint host.
+Express is preferred to Flask for more serious services that want more features such as token management integrated with their own backend. To run this, simply go to the mint repo and download `mint-host/full_server.js`. Then, run it with Node, and change the constants at the top if needed. This gives you the most control over your Mint host.
 ## Using it
 It will run on `localhost:3000` by default, which is in the default Mint hosts list. To share it with the world, you can:
 * Find a hosting provider (VPS, dedicated Node hosts can also be found for a small fee)

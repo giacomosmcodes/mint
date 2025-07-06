@@ -32,11 +32,10 @@ export default async function handler(req, res) {
         token: process.env.BLOB_READ_WRITE_TOKEN,
       });
 
-      console.log(`Uploaded file ${filename} as hash ${hash}`);
-
+      console.log(`[INFO] Uploaded file ${filename} as hash ${hash}`);
       return res.status(200).json({ url, hash, filename });
     } catch (e) {
-      console.error("Upload failed:", e);
+      console.error("[ERROR] Upload failed:", e);
       return res.status(500).json({ error: "Upload failed" });
     }
   });
