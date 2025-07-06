@@ -61,29 +61,64 @@ mint host 1234 --maxfs 750 --autodel 7 --cleaninterval 5
 These are optional, but they let you set the port, max file size, autodelete time, and cleanup interval respectively.
 
 You will need to either host this on a VPS, dedicated Flask host, or set up DDNS + port forwarding. 
-## Serverless Function (easiest simple host)
-If you want a usable host that you can easily share with other people, then the Serverless Function is preferred. This connects to a Vercel Blob store and is deployed in a serverless environment. Keep in mind that this option provides less control over actual files, disk usage, and identity-based auth. 
-### Prerequisites
-A Vercel account (free plan is fine) is required.
-### Step 1: Clone the repo
-Clone and move into host directory
+## Deploying Mint Host on Vercel (Serverless)
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/giacomosmcodes/mint.git
+cd mint/mint-host
 ```
-git clone https://github.com/giacomosmcodes/mint.git 
-cd mint
-cd mint-host
+
+### 2. Set your Vercel Blob user ID
+
+Edit `api/[hash].js`:
+
+```js
+const userId = "your-vercel-user-id.public";
 ```
-### Step 2: Change account ID
-In `/api/[hash].js`, change line 12 to your user id followed by `.public`.
-### Step 3: Deploy
-Install Vercel CLI:
-```
+
+Replace `"your-vercel-user-id"` with your actual **Vercel user ID**, not your username.  
+You can find it in the URL when creating a blob store, or by checking an existing one.
+
+### 3. Install Vercel CLI and log in
+
+```bash
 npm install -g vercel
-```
-Authenticate:
-```
 vercel login
 ```
-Then just run the deployment helper tool, which will guide you through deploying the 
+
+### 4. Deploy
+
+```bash
+vercel --prod
+```
+
+### 5. Create your blob store
+
+```bash
+vercel blob create your-vercel-user-id.public
+```
+
+Copy the `BLOB_READ_WRITE_TOKEN` returned.
+
+### 6. Add the token to your Vercel project
+
+In the Vercel dashboard:
+
+- Go to your project → Settings → Environment Variables
+- Key: `BLOB_READ_WRITE_TOKEN`
+- Value: your token
+- Environment: Production
+
+Then redeploy:
+
+```bash
+vercel --prod
+```
+
+### Done :)
+you have a mint host now, yay! share the url with your friends
 ## Node host (advanced)
 Express is preferred to Flask for more serious services that want more features such as token management integrated with their own backend. To run this, simply go to the mint repo and download `mint-host/full_server.js`. Then, run it with Node, and change the constants at the top if needed. This gives you the most control over your Mint host.
 ## Using it
